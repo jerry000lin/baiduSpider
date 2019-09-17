@@ -4,8 +4,8 @@ const request = require('request');
 const fs = require('fs');
 
 const dataList = []
-const start = 20020
-const DATA_LENGTH = 5000;
+const start = 0
+const DATA_LENGTH = 200;
 const wucha = 0
 let flag = 0
 for (let p = start / 20; p <= (start + DATA_LENGTH) / 20; p++) {
@@ -43,53 +43,69 @@ for (let p = start / 20; p <= (start + DATA_LENGTH) / 20; p++) {
                 })
                 const myList = dataList.map(item => item.name)
                 doWirteFile(myList.join("\n"))
-                // let control_flag = 0
-                // for (let itemIndex = 0; itemIndex < dataList.length; itemIndex++) {
-                //     request({
-                //         url: dataList[itemIndex].link,
-                //         headers: {
-                //             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                //             'Accept-Language': 'zh-CN,zh;q=0.8',
-                //             'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36',
-                //             'Cache-Control': 'max-age=0',
-                //             'Connection': 'keep-alive',
-                //             "Upgrade-Insecure-Requests": 1,
-                //             "timeout": 10000
-                //         },
-                //         encoding: null
-                //     }, (error, response, body) => {
-                //         control_flag++
-                //         console.log(control_flag)
-                //         if (!error && response.statusCode == 200) {
-                //             const no_content_picBody = iconv.decode(body, "GBK");
-                //             const $ = cheerio.load(no_content_picBody)
-                //             const no_content_pic = $(".no_content_pic")
-                //             if (no_content_pic.length == 1) {
-                //                 dataList[itemIndex].isExist = false
-                //             } else {
-                //                 dataList[itemIndex].isExist = true
-                //             }
-                //         } else {
-                //             dataList[itemIndex].isExist = false
-                //         }
-                //         if (control_flag == dataList.length - wucha) {
-                //             console.log("sortsortsortsortsortsortsortsortsortsortsortsort")
-                //             dataList.sort((a, b) => {
-                //                 return b.level.slice(2) * 1 - a.level.slice(2) * 1
-                //             })
-                //             const myNameList = dataList.reduce((array, item) => {
-                //                 if (item.isExist !== undefined) {
-                //                     if (!item.isExist) {
-                //                         return array
-                //                     }
-                //                 }
-                //                 array.push(item.name)
-                //                 return array
-                //             }, [])
-                //             doWirteFile(myNameList.join("\n"))
-                //         }
-                //     })
-                // }
+                let control_flag = 0
+                for (let itemIndex = 0; itemIndex < dataList.length; itemIndex++) {
+                    request({
+                        url: dataList[itemIndex].link,
+                        headers: {
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                            'Accept-Language': 'zh-CN,zh;q=0.9',
+                            'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36',
+                            'Cache-Control': 'max-age=0',
+                            'Connection': 'keep-alive',
+                            "Upgrade-Insecure-Requests": 1
+                        }
+                    }, function (error, response, body) {
+                        const $ = cheerio.load(body)
+                        console.log(response.statusCode)
+                        const noContent = $(".no_content_text").text()
+                        console.log(noContent)
+                    });
+                    // request({
+                    //     url: dataList[itemIndex].link,
+                    //     headers: {
+                    //         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    //         'Accept-Language': 'zh-CN,zh;q=0.8',
+                    //         'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36',
+                    //         'Cache-Control': 'max-age=0',
+                    //         'Connection': 'keep-alive',
+                    //         "Upgrade-Insecure-Requests": 1,
+                    //         "timeout": 10000
+                    //     },
+                    //     encoding: null
+                    // }, (error, response, body) => {
+                    //     control_flag++
+                    //     console.log(control_flag)
+                    //     if (!error && response.statusCode == 200) {
+                    //         const no_content_picBody = iconv.decode(body, "GBK");
+                    //         const $ = cheerio.load(no_content_picBody)
+                    //         const no_content_pic = $(".no_content_pic")
+                    //         if (no_content_pic.length == 1) {
+                    //             dataList[itemIndex].isExist = false
+                    //         } else {
+                    //             dataList[itemIndex].isExist = true
+                    //         }
+                    //     } else {
+                    //         dataList[itemIndex].isExist = false
+                    //     }
+                    //     if (control_flag == dataList.length - wucha) {
+                    //         console.log("sortsortsortsortsortsortsortsortsortsortsortsort")
+                    //         dataList.sort((a, b) => {
+                    //             return b.level.slice(2) * 1 - a.level.slice(2) * 1
+                    //         })
+                    //         const myNameList = dataList.reduce((array, item) => {
+                    //             if (item.isExist !== undefined) {
+                    //                 if (!item.isExist) {
+                    //                     return array
+                    //                 }
+                    //             }
+                    //             array.push(item.name)
+                    //             return array
+                    //         }, [])
+                    //         doWirteFile(myNameList.join("\n"))
+                    //     }
+                    // })
+                }
             }
         }
     });
@@ -117,5 +133,4 @@ function doWirteFile(dataList) {
             });
         }
     });
-
 }
