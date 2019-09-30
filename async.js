@@ -5,26 +5,25 @@ const request = require('request');
 const fs = require('fs');
 
 
-
-
-
-
-
-const BASE_URL = "http://tieba.baidu.com/f/like/furank?kw=%BE%CD%D2%B5&pn="
-const PAGE_MAX = 1
-
-
-function createUrlLists(base, size) {
+function createUrlLists(base, size, startPage = 0) {
     const list = []
-    for (let i = 1; i <= size; i++) {
+    for (let i = startPage; i <= size; i++) {
         list.push(base + i)
     }
     return list
 }
 async.series([
-    getData("http://tieba.baidu.com/f/like/furank?kw=%C9%F1%B0%AE%D6%AE%BC%D2&pn=", 500, "神爱之家"),
-    getData("http://tieba.baidu.com/f/like/furank?kw=q%BA%C5%BD%BB%D2%D7&pn=", 300, "Q号交易"),
-    getData("http://tieba.baidu.com/f/like/furank?kw=%C2%F4%B6%AB%CE%F7&pn=", 1000, "卖东西"),
+    getData("http://tieba.baidu.com/f/like/furank?kw=%D7%A2%BB%E1&pn=", 20000, "注会", 10000),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=iphone11&pn=", 275, "iphone11"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%B6%F1%B0%D4%C8%AE&pn=", 1500, "恶霸犬"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%C1%A2%CB%A2&pn=", 350, "立刷"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%C1%A2%CB%A2&pn=", 350, "立刷"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%CE%DA%BF%CB%C0%BC%C1%F4%D1%A7&pn=", 200, "乌克兰留学"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%C5%B2%CD%FE&pn=", 300, "挪威"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%CA%D6%D5%CA%BD%BB%D2%D7&pn=", 1500, "手帐交易"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%B2%BB%D4%D0%B2%BB%D3%FD&pn=", 1300, "不孕不育"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%CD%EC%BB%D8%B0%AE&pn=", 200, "挽回爱"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%BD%AD%CE%F7%BD%CC%CA%A6&pn=", 99, "江西教师"),
 ], function (err, result) {
     console.log(result)
 })
@@ -32,10 +31,10 @@ async.series([
 
 
 // 创建一个url的请求列表，用于map函数中的 coll 
-function getData(baseurl, page, fileName) {
+function getData(baseurl, page, fileName, startPage) {
     return (cb) => {
         const dataList = []
-        let urlLists = createUrlLists(baseurl, page);
+        let urlLists = createUrlLists(baseurl, page, startPage);
         async.mapLimit(urlLists, 20, function (url, callback) {
             // 这里的参数url便是urllists中的每一项
             var option = {
@@ -48,6 +47,7 @@ function getData(baseurl, page, fileName) {
                     'Connection': 'keep-alive',
                     "Upgrade-Insecure-Requests": 1
                 },
+                timeout: 20000,
                 encoding: null
             }
 
@@ -64,9 +64,10 @@ function getData(baseurl, page, fileName) {
                         const tdList = trList.eq(i).children("td")
                         const aData = {
                             name: tdList.eq(1).text(),
-                            link: "http://tieba.baidu.com/home/main/" + tdList.eq(1).find("a").attr("href"),
+                            link: "http://tieba.baidu.com" + tdList.eq(1).find("a").attr("href"),
                             level: tdList.eq(3).text() * 1,
-                            pn: option.url.split("&pn=")[1] * 1
+                            pn: option.url.split("&pn=")[1] * 1,
+                            index: option.url.split("&pn=")[1] * 1 * i
                         }
                         dataList.push(aData)
                     })
@@ -95,15 +96,24 @@ function getData(baseurl, page, fileName) {
                     }
                 }
                 request(option, (error, response, body) => {
-                    const $ = cheerio.load(body)
-                    const noContent = $(".no_content_text").text()
-                    dataItem.text = noContent
-                    console.log(dataItem)
-                    callback(null, dataItem, option);
+                    try {
+                        if (!error && response.statusCode == 200) {
+                            const $ = cheerio.load(body)
+                            const noContent = $(".no_content_text").text()
+                            // const noContent = $(".info-content").text()
+                            dataItem.text = noContent
+                            console.log(dataItem)
+                            callback(null, dataItem, option);
+                        } else {
+                            console.log(err)
+                        }
+                    } catch (err) {
+                        console.log(err)
+                    }
                 });
             }, (err, result) => {
                 console.log("fileName", fileName)
-                dataList.sort((a, b) => b.level - a.level)
+                dataList.sort((a, b) => b.index - a.index)
                 cb(null, fileName)
                 doWirteFile(JSON.stringify(dataList), fileName)
             })
@@ -113,7 +123,8 @@ function getData(baseurl, page, fileName) {
 }
 
 function doWirteFile(dataList, fileName) {
-    fs.exists("./" + "test.txt", (exits) => {
+    console.log("正在写文件")
+    fs.exists("./" + fileName + ".txt", (exits) => {
         if (exits) {
             fs.appendFile("./" + "test.txt", dataList, 'utf-8', (err) => {
                 if (err) {
