@@ -24,7 +24,9 @@ async.series([
     // getData("http://tieba.baidu.com/f/like/furank?kw=%CA%D6%D5%CA%BD%BB%D2%D7&pn=", 1500, "手帐交易"),
     // getData("http://tieba.baidu.com/f/like/furank?kw=%B2%BB%D4%D0%B2%BB%D3%FD&pn=", 1650, "不孕不育"),
     // getData("http://tieba.baidu.com/f/like/furank?kw=%BD%AD%CE%F7%BD%CC%CA%A6&pn=", 1650, "江西教师"),
-    getData("http://tieba.baidu.com/f/like/furank?kw=%D7%A2%BB%E1&pn=", 10000, "注会"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%D7%A2%BB%E1&pn=", 10000, "注会"),
+    getData("http://tieba.baidu.com/f/like/furank?kw=%BB%F9%BD%F0&pn=", 1000, "自驾游"),
+
 ], function (err, result) {
     console.log(result)
 })

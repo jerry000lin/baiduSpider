@@ -1,8 +1,11 @@
 var fs = require("fs");
 
 [
-    "恶霸犬",
-    "iphone11"
+    "自驾游",
+    // "云阳",
+    // "基金300000",
+    // "恶霸犬",
+    // "iphone11"
     // "立刷"
     // "大话西游公益服",
     // "不孕不育",
@@ -13,13 +16,14 @@ var fs = require("fs");
 ].forEach(item => {
     transferMyData(item)
 })
-
 function transferMyData(name) {
 
     // 同步读取
     var data = fs.readFileSync(name + '.txt');
     const itemList = JSON.parse(data)
+    itemList.sort((a, b) => a.index - b.index)
     itemList.sort((a, b) => a.level - b.level)
+    itemList.sort((a, b) => a.pn - b.pn)
     let forwardElement = itemList[0]
     forwardElement.isDeadPeople = false
     let regex = getRegex(forwardElement.name)
@@ -73,6 +77,28 @@ function transferMyData(name) {
         } else if (item.name.indexOf("Q") != -1) {
             return false
         } else if (item.name.indexOf("微") != -1) {
+            return false
+        } else if (item.name.indexOf("絵") != -1) {
+            return false
+        } else if (item.name.indexOf("亜") != -1) {
+            return false
+        } else if (item.name.indexOf("香") != -1) {
+            return false
+        } else if (item.name.indexOf("恵") != -1) {
+            return false
+        } else if (item.name.indexOf("奈") != -1) {
+            return false
+        } else if (item.name.indexOf("佐") != -1) {
+            return false
+        } else if (item.name.indexOf("阪") != -1) {
+            return false
+        } else if (item.name.indexOf("藤") != -1) {
+            return false
+        } else if (item.name.indexOf("崎") != -1) {
+            return false
+        } else if (item.name.indexOf("纪") != -1) {
+            return false
+        } else if (item.name.indexOf("瀬") != -1) {
             return false
         }
         return true

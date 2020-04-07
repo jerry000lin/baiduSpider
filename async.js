@@ -5,7 +5,7 @@ const request = require('request');
 const fs = require('fs');
 
 
-function createUrlLists(base, size, startPage = 0) {
+function createUrlLists(base, size, startPage = 1) {
     const list = []
     for (let i = startPage; i <= size; i++) {
         list.push(base + i)
@@ -13,7 +13,9 @@ function createUrlLists(base, size, startPage = 0) {
     return list
 }
 async.series([
-    getData("http://tieba.baidu.com/f/like/furank?kw=%D7%A2%BB%E1&pn=", 20000, "注会", 10000),
+    getData("http://tieba.baidu.com/f/like/furank?kw=%D7%D4%BC%DD%D3%CE&pn=", 1000, "自驾游"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%B3%CC%D0%F2%D4%B1&pn=", 1000, "程序员"),
+    // getData("http://tieba.baidu.com/f/like/furank?kw=%D4%C6%D1%F4&pn=", 1400, "云阳", 600),
     // getData("http://tieba.baidu.com/f/like/furank?kw=iphone11&pn=", 275, "iphone11"),
     // getData("http://tieba.baidu.com/f/like/furank?kw=%B6%F1%B0%D4%C8%AE&pn=", 1500, "恶霸犬"),
     // getData("http://tieba.baidu.com/f/like/furank?kw=%C1%A2%CB%A2&pn=", 350, "立刷"),
@@ -35,8 +37,9 @@ function getData(baseurl, page, fileName, startPage) {
     return (cb) => {
         const dataList = []
         let urlLists = createUrlLists(baseurl, page, startPage);
-        async.mapLimit(urlLists, 20, function (url, callback) {
+        async.mapLimit(urlLists, 50, function (url, callback) {
             // 这里的参数url便是urllists中的每一项
+            console.log(url)
             var option = {
                 url: url,
                 headers: {
@@ -67,7 +70,7 @@ function getData(baseurl, page, fileName, startPage) {
                             link: "http://tieba.baidu.com" + tdList.eq(1).find("a").attr("href"),
                             level: tdList.eq(3).text() * 1,
                             pn: option.url.split("&pn=")[1] * 1,
-                            index: option.url.split("&pn=")[1] * 1 * i
+                            index: option.url.split("&pn=")[1] * 1 * (i + 1)
                         }
                         dataList.push(aData)
                     })
@@ -77,13 +80,14 @@ function getData(baseurl, page, fileName, startPage) {
             });
 
         }, (err, result) => {
+            console.log("获取具体信息")
             // 这里是要在前面的函数全部完成之后再调用
             // 因此shopLists在这个时候已经是了全部url数据的状态了
             // 这里的result其实就是我们传入的urlLists
             // 但是我们没有对urlLists进行操作，所以我们也可以使用each方法来实现同样的功能
             // dataList.sort((a, b) => b.level - a.level)
-            console.log(dataList)
-            async.mapLimit(dataList, 20, (dataItem, callback) => {
+            let temp_index = 1
+            async.mapLimit(dataList, 50, (dataItem, callback) => {
                 const option = {
                     url: dataItem.link,
                     headers: {
@@ -96,6 +100,10 @@ function getData(baseurl, page, fileName, startPage) {
                     }
                 }
                 request(option, (error, response, body) => {
+                    temp_index++
+                    if (temp_index % 10000 == 0) {
+                        doWirteFile(JSON.stringify(dataList), fileName + temp_index)
+                    }
                     try {
                         if (!error && response.statusCode == 200) {
                             const $ = cheerio.load(body)
@@ -106,14 +114,23 @@ function getData(baseurl, page, fileName, startPage) {
                             callback(null, dataItem, option);
                         } else {
                             console.log(err)
+                            callback(null, {
+                                text: "",
+                                name: "",
+                                error: true
+                            }, option);
+
                         }
                     } catch (err) {
-                        console.log(err)
+                        callback(null, {
+                            text: "",
+                            name: "",
+                            error: true
+                        }, option);
                     }
                 });
             }, (err, result) => {
                 console.log("fileName", fileName)
-                dataList.sort((a, b) => b.index - a.index)
                 cb(null, fileName)
                 doWirteFile(JSON.stringify(dataList), fileName)
             })
@@ -124,25 +141,13 @@ function getData(baseurl, page, fileName, startPage) {
 
 function doWirteFile(dataList, fileName) {
     console.log("正在写文件")
-    fs.exists("./" + fileName + ".txt", (exits) => {
-        if (exits) {
-            fs.appendFile("./" + "test.txt", dataList, 'utf-8', (err) => {
-                if (err) {
-                    console.error("文件生成时发生错误.");
-                    throw err;
-                }
-            });
-        } else {
-            console.info('文件不存在，将生成新文件.');
-            // 对于写入的内容JSON.stringify(dataList),，最好可以用JSON.stringify转化一下。
-            //如果把数组直接写入文件的话，很可能会得到 [Object] 这样的形式
-            fs.writeFile("./" + fileName + ".txt", dataList, 'utf-8', (err) => {
-                if (err) {
-                    console.error(fileName + "文件生成时发生错误.");
-                    throw err;
-                }
-                console.info('文件已经成功生成.');
-            });
+    // 对于写入的内容JSON.stringify(dataList),，最好可以用JSON.stringify转化一下。
+    //如果把数组直接写入文件的话，很可能会得到 [Object] 这样的形式
+    fs.writeFile("./" + fileName + ".txt", dataList, 'utf-8', (err) => {
+        if (err) {
+            console.error(fileName + "文件生成时发生错误.");
+            throw err;
         }
+        console.info('文件已经成功生成.');
     });
 }

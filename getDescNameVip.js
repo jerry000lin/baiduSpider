@@ -1,7 +1,7 @@
 var fs = require("fs");
 
 [
-    "注会"
+    "自驾游"
     // "不孕不育",
     // "江西教师",
     // "挪威",
@@ -66,19 +66,20 @@ function transferMyData(name) {
 
     // doWirteFile(itemList.filter(item => item.isDeadPeople).map(item => item.name).join("\r\n"), name + "deadPeople")
 
-    doWirteFile(itemList.filter(item => !!item.isVip).map(item => item.name).join("\r\n"), name + "vip")
+    // doWirteFile(itemList.filter(item => !!item.isVip).map(item => item.name).join("\r\n"), name + "vip")
 
 
     let filterItemLish = itemList.filter(item => !item.isDeadPeople)
 
     const nameItemList = filterItemLish.filter(item => {
-        if (!!item.text) {
+        if (item.text == "抱歉，您访问的用户已被屏蔽。") {
             return false
         } else if (item.name == "") {
             return false
-        } else if (item.name.indexOf("com") != -1) {
-            return false
         }
+        //  else if (item.name.indexOf("com") != -1) {
+        //     return false
+        // }
         // else if (item.name.indexOf("Q") != -1) {
         //     return false
         // } else if (item.name.indexOf("微") != -1) {
